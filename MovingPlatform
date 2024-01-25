@@ -1,0 +1,84 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "MovingPlatform.h"
+
+// Sets default values
+AMovingPlatform::AMovingPlatform()
+{
+ 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
+
+}
+
+// Called when the game starts or when spawned
+void AMovingPlatform::BeginPlay()
+{
+	Super::BeginPlay();
+
+	startLocation = GetActorLocation();
+
+	FString Name = GetName(); //a function that gets the name of the actor which we see in the level outliner
+
+	UE_LOG(LogTemp, Display, TEXT("BeginPlay: %s"), *Name); //display messages to UE console
+
+}
+
+// Called every frame
+void AMovingPlatform::Tick(float DeltaTime)
+{
+
+	Super::Tick(DeltaTime);
+
+	MovePlatform(DeltaTime);
+	RotatePlatform(DeltaTime);
+	ShouldPlatformReturn();
+
+}
+
+void AMovingPlatform::MovePlatform(float DeltaTime)
+{
+	
+
+	if(ShouldPlatformReturn())
+	{
+		FVector MoveDirection = platformVelocity.GetSafeNormal();
+		startLocation = startLocation + MoveDirection * MoveDistance;
+		SetActorLocation(startLocation);
+		platformVelocity = -platformVelocity;
+
+	}
+
+	else{
+
+		FVector CurrentLocation = GetActorLocation();
+
+		CurrentLocation = CurrentLocation + platformVelocity * DeltaTime;
+
+		SetActorLocation(CurrentLocation);
+	}
+
+}
+
+void AMovingPlatform::RotatePlatform(float DeltaTime)
+{
+	//UE_LOG(LogTemp, Display, TEXT("%s Rotating Platform"), *GetName());
+	AddActorLocalRotation(RotationVelocity * DeltaTime);
+
+}
+
+bool AMovingPlatform::ShouldPlatformReturn() const //const stops the function from editing the class itself. E.g. changing the platform location
+{
+
+	return GetDistanceMoved() > MoveDistance;
+
+}
+
+float AMovingPlatform::GetDistanceMoved() const
+{
+	float DistanceMoved = FVector::Dist(startLocation, GetActorLocation());
+
+	return DistanceMoved;
+}
+
+
